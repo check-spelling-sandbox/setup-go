@@ -11,7 +11,7 @@
 (?:^|/)pyproject.toml
 (?:^|/)vendor/
 (?:^|/|\b)requirements(?:-dev|-doc|-test|)\.txt$
-^\.licenses/
+-lock\.yaml$
 \.a$
 \.ai$
 \.all-contributorsrc$
@@ -82,6 +82,8 @@
 \.xz$
 \.zip$
 ^\.github/actions/spelling/
+^\.licenses/
 ^\Q.github/workflows/spelling.yml\E$
-^\Q__tests__/data/golang-dl.json\E$
+^__tests__/data/golang-dl\.json$
+^CODE_OF_CONDUCT\.md$
 ignore$

@@ -54,7 +54,9 @@ name: Check Spelling
 #   spelling:
 #     # remove `security-events: write` and `use_sarif: 1`
 #     # remove `experimental_apply_changes_via_bot: 1`
-#     ... otherwise adjust the `with:` as you wish
+#     ... otherwise, adjust the `with:` as you wish
+
+# on.pull_request(_target).edited is only needed for with.check_commit_messages: title | description
 
 on:
   push:
@@ -66,12 +68,15 @@ on:
     branches:
       - '**'
     types:
+      - 'edited'
       - 'opened'
       - 'reopened'
       - 'synchronize'
   issue_comment:
     types:
       - 'created'
+
+permissions: {}
 
 jobs:
   spelling:
@@ -92,31 +97,70 @@ jobs:
     steps:
       - name: check-spelling
         id: spelling
-        uses: check-spelling/check-spelling@prerelease
+        uses: check-spelling-sandbox/check-spelling@prerelease
         with:
           suppress_push_for_open_pull_request: ${{ github.actor != 'dependabot[bot]' && 1 }}
           checkout: true
           check_file_names: 1
+          check_commit_messages: commits, title, description
           spell_check_this: check-spelling/spell-check-this@prerelease
           post_comment: 0
           use_magic_file: 1
           report-timing: 1
           warnings: bad-regex,binary-file,deprecated-feature,ignored-expect-variant,large-file,limited-references,no-newline-at-eof,noisy-file,non-alpha-in-dictionary,token-is-substring,unexpected-line-ending,whitespace-in-dictionary,minified-file,unsupported-configuration,no-files-to-check,unclosed-block-ignore-begin,unclosed-block-ignore-end
           experimental_apply_changes_via_bot: 1
-          use_sarif: ${{ (!github.event.pull_request || (github.event.pull_request.head.repo.full_name == github.repository)) && 1 }}
-          check_extra_dictionaries: ''
-          dictionary_source_prefixes: >
+          use_sarif: 1
+          extra_dictionary_limit: 20
+          allow-hunspell: false
+          load-config-from: |
             {
-            "cspell": "https://raw.githubusercontent.com/check-spelling/cspell-dicts/v20241114/dictionaries/"
+              "pr-base-keys": [
+                "check_extra_dictionaries",
+                "dictionary_source_prefixes",
+                "extra_dictionaries",
+                ""
+              ],
+              "pr-trusted-keys": [
+                ""
+              ],
+              "": []
             }
-          extra_dictionaries: |
-            cspell:software-terms/softwareTerms.txt
-            cspell:npm/npm.txt
-            cspell:node/node.txt
-            cspell:php/php.txt
-            cspell:golang/go.txt
-            cspell:aws/aws.txt
-            cspell:python/common/extra.txt
+
+  comment-push:
+    name: Report (Push)
+    # If your workflow isn't running on push, you can remove this job
+    runs-on: ubuntu-slim
+    needs: spelling
+    permissions:
+      actions: read
+      contents: write
+    if: (success() || failure()) && needs.spelling.outputs.followup && github.event_name == 'push'
+    steps:
+      - name: comment
+        uses: check-spelling/check-spelling@prerelease
+        with:
+          checkout: true
+          spell_check_this: check-spelling/spell-check-this@prerelease
+          task: ${{ needs.spelling.outputs.followup }}
+
+  comment-pr:
+    name: Report (PR)
+    # If you workflow isn't running on pull_request*, you can remove this job
+    runs-on: ubuntu-slim
+    needs: spelling
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    if: (success() || failure()) && needs.spelling.outputs.followup && contains(github.event_name, 'pull_request')
+    steps:
+      - name: comment
+        uses: check-spelling/check-spelling@prerelease
+        with:
+          checkout: true
+          spell_check_this: check-spelling/spell-check-this@prerelease
+          task: ${{ needs.spelling.outputs.followup }}
+          experimental_apply_changes_via_bot: 1
 
   update:
     name: Update PR
@@ -124,7 +168,7 @@ jobs:
       contents: write
       pull-requests: write
       actions: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: ${{
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&

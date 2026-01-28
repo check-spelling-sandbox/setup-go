@@ -2,33 +2,21 @@
 
 # Automatically suggested patterns
 
-# hit-count: 974 file-count: 2
-# hex runs
-\b[0-9a-fA-F]{16,}\b
+# hit-count: 12 file-count: 2
+# IServiceProvider / isAThing
+(?:(?:\b|_|(?<=[a-z]))I|(?:\b|_)(?:nsI|isA))(?=(?:[A-Z][a-z]{2,})+(?:[A-Z\d]|\b))
 
-# hit-count: 155 file-count: 3
-# version suffix <word>v#
-(?:(?<=[A-Z]{2})V|(?<=[a-z]{2}|[A-Z]{2})v)\d+(?:\b|(?=[a-zA-Z_]))
-
-# hit-count: 81 file-count: 34
+# hit-count: 7 file-count: 3
 # https/http/file urls
 (?:\b(?:https?|ftp|file)://)[-A-Za-z0-9+&@#/*%?=~_|!:,.;]+[-A-Za-z0-9+&@#/*%=~_|]
 
-# hit-count: 9 file-count: 2
-# IServiceProvider / isAThing
-(?:\b|_)(?:(?:ns|)I|isA)(?=(?:[A-Z][a-z]{2,})+(?:[A-Z\d]|\b))
-
-# hit-count: 5 file-count: 5
-# node packages
-(["'])@[^/'" ]+/[^/'" ]+\g{-1}
-
-# hit-count: 4 file-count: 4
-# GitHub actions
-\buses:\s+[-\w.]+/[-\w./]+@[-\w.]+
+# hit-count: 3 file-count: 2
+# version suffix <word>v#
+(?:(?<=[A-Z]{2})V|(?<=[a-z]{2}|[A-Z]{2})v)\d+(?:\b|(?=[a-zA-Z_]))
 
 # hit-count: 1 file-count: 1
-# scala imports
-^import (?:[\w.]|\{\w*?(?:,\s*(?:\w*|\*))+\})+
+# golang print-f-style functions
+(?i)(?<=append|comma|debug|equal|err|error|exit|fatal|format|info|log|name|panic|print|skip|scan|string|trace|true|warn|warning|wrap|write)(?:f|ln)(?:[ (]|$)
 
 # Questionably acceptable forms of `in to`
 # Personally, I prefer `log into`, but people object
@@ -38,19 +26,24 @@
 # to opt in
 \bto opt in\b
 
+# pass(ed|ing) in
+\bpass(?:ed|ing) in\b
+
 # acceptable duplicates
 # ls directory listings
 [-bcdlpsw](?:[-r][-w][-SsTtx]){3}[\.+*]?\s+\d+\s+\S+\s+\S+\s+[.\d]+(?:[KMGT]|)\s+
 # mount
 \bmount\s+-t\s+(\w+)\s+\g{-1}\b
 # C types and repeated CSS values
-\s(auto|buffalo|center|div|inherit|long|LONG|none|normal|solid|thin|transparent|very)(?: \g{-1})+\s
+\s(auto|await|buffalo|center|div|inherit|long|LONG|none|normal|solid|thin|transparent|very)(?:\s\g{-1})+\s
 # C enum and struct
 \b(?:enum|struct)\s+(\w+)\s+\g{-1}\b
 # go templates
 \s(\w+)\s+\g{-1}\s+\`(?:graphql|inject|json|yaml):
 # doxygen / javadoc / .net
 (?:[\\@](?:brief|defgroup|groupname|link|t?param|return|retval)|(?:public|private|\[Parameter(?:\(.+\)|)\])(?:\s+(?:static|override|readonly|required|virtual))*)(?:\s+\{\w+\}|)\s+(\w+)\s+\g{-1}\s
+# C# getter/setter
+\s(\w+)\s+\g{-1}\s*\{\s*[gs]et;
 
 # macOS file path
 (?:Contents\W+|(?!iOS)/)MacOS\b
